@@ -26,7 +26,7 @@ ${YAML_LIB_PATH}/include
 #${YAML_LIB_PATH}/include/yaml-cpp/contrib
 )
 
-set(YAML_LIB_DIR ${YAML_LIB_PATH}/build_Linux)
+set(YAML_LIB_DIR ${YAML_LIB_PATH}/build)
 find_library(YAML_LIBRARIES NAMES "yaml-cpp" PATHS ${YAML_LIB_DIR})
 
 message("YAML_LIB_DIR = " ${YAML_LIB_DIR})
