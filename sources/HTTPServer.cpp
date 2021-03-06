@@ -9,10 +9,10 @@
 #include <netinet/in.h>
 
 HTTPServer::HTTPServer(const std::string& newConfFile):
-//myPortNumber(80),
+myPortNumber(TCP_PORT),
 isInitOk(false)
 {
-	myPortNumber = 80;
+	mySplittedMessage.clear();
 	if(initConnection() < 0)
 		std::cout << "Problem to init connection" << std::endl;
 	else
@@ -28,21 +28,25 @@ bool HTTPServer::loadConfigFile(const std::string& configFile)
 {
 	std::cout << "Loading "<< configFile  << " file"  << std::endl;
 	
+	// Load the yaml file
 	myConfigFile  = YAML::LoadFile(configFile.c_str());
 
 	return true;
 }
 
-std::string HTTPServer::searchRequest(const char* command, const char* url)
+std::string HTTPServer::searchRequest(const std::string& command, const std::string& url, const std::string& version)
 {
-	if(myConfigFile[command])
+	std::string res = version;
+	// Check if the string is find
+	if(myConfigFile[url.c_str()])
         {
-                std::cout << command  << " is present"  << std::endl;
-		return myConfigFile[command].as<std::string>();
+                std::cout << url  << " is present"  << std::endl;
+		return (res + " " + "200 OK");
         }
         else
         {
-		return std::string("404 Not found !");
+	        std::cout << url  << " is not found"  << std::endl;
+		return std::string(res + " " + "404 Not Found");
         }
 }
 
@@ -51,6 +55,7 @@ int HTTPServer::initConnection()
 {	
 	struct sockaddr_in servAddr;
 	
+	// Creation of the socket
 	myBindSockFd = socket(AF_INET, SOCK_STREAM, 0);
         if (myBindSockFd < 0)
 	{     
@@ -63,6 +68,7 @@ int HTTPServer::initConnection()
         servAddr.sin_addr.s_addr = INADDR_ANY;
         servAddr.sin_port = htons(myPortNumber);
 
+	// Here we bind a socket to the server address
         if (bind(myBindSockFd, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
 	{
 		std::cout << "ERROR coudn't bind the socket" << std::endl;
@@ -72,6 +78,30 @@ int HTTPServer::initConnection()
 	isInitOk = true;
 	return 0;
 	
+}
+
+void getSplittedMessage(std::map<int,std::string>& map, std::string& message)
+{
+	std::string delimiter = " ";
+	size_t pos = 0;
+	int mapPos = 0;
+	// We get the first two strings who are the command and the url and the http version
+	while ((pos = message.find(delimiter)) != std::string::npos || mapPos < 4) 
+	{
+    		map[mapPos] = message.substr(0, pos);
+    		message.erase(0, pos + delimiter.length());
+    		mapPos++;
+	}
+	
+	// Remove the first character who is / from the string
+	map[1].erase(0,1);
+	
+	// Remove the \n in the string and keep the first string
+	std::string strCRLF = "\n";
+	std::string tmp;
+	size_t nLocCRLF = map[2].find(strCRLF);
+	tmp = map[2].substr(0,nLocCRLF-1);
+	map[2] = tmp;
 }
 
 int HTTPServer::waitAndTreatRequest()
@@ -104,25 +134,14 @@ int HTTPServer::waitAndTreatRequest()
 		}
 
 		// Search in the config file if the command is present
-		//
-		
-		std::string delimiter = " ";
 		std::string messageReceived(buffer);
-		size_t pos = 0;
-		std::string token;
-		while ((pos = messageReceived.find(delimiter)) != std::string::npos) {
-    			token = messageReceived.substr(0, pos);
-    			std::cout << token << std::endl;
-    			messageReceived.erase(0, pos + delimiter.length());
-		}
-		std::cout << messageReceived << std::endl;
+		getSplittedMessage(mySplittedMessage, messageReceived);
 
-		//std::string response = searchRequest();
+		std::string response = searchRequest(mySplittedMessage[0], mySplittedMessage[1], mySplittedMessage[2]);
+		std::cout <<"The response sent is : "<< response << std::endl;
 		
-		printf("Here is the message: %s\n",buffer);
-
         	// Write the response to the client
-        	n = write(myAcceptSockFd,"404 Not Found",18);
+        	n = write(myAcceptSockFd,response.c_str(),response.size());
         
 		//Verify is the message could be sent
 		if (n < 0) 
