@@ -65,7 +65,6 @@ int searchTypeNode(const char* string, YAML::Node& node)
 
 std::string HTTPServer::searchRequest(const std::string& command, const std::string& url, const std::string& version)
 {
-	std::string res = version;
 	bool isFound = false;
 
 	// Check if url is find
@@ -112,12 +111,12 @@ std::string HTTPServer::searchRequest(const std::string& command, const std::str
 	if(isFound)
 	{
 		std::cout << url  << " is present"  << std::endl;
-		return (res + " " + "200 OK");
+		return ("200 OK");
 	}
 	else
 	{
 		std::cout << url  << " is not found"  << std::endl;
-		return std::string(res + " " + "404 Not Found");
+		return std::string("404 Not Found");
 	}
 }
 

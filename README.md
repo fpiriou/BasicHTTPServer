@@ -3,10 +3,15 @@
 ## Overview
 
 This program is a restricted implementation of a HTTP server.
+
 After the connection step passed successfully, this server load an YAML configuration file OpenApi 3.0 and wait for an HTTP request.
+
 When a request arrive, the server search in the configuration file if the request is present in the file.
-If the request is find, the server respond : HTTP_VERSION 200 OK otherwise it respond HTTP_VERSION 404 Not Found.
+
+If the request is find, the server respond : 200 OK when the request is found otherwise it respond 404 Not Found.
+
 The HTTP version depends on the request's version received.
+
 After the response sent, the server close the connection.
 
 ## External dependencies
