@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 
 # Set project name
-project(HTTPServer)
+project(BasicHTTPServer)
 
 # Set version number of the project
 set(HTTPServer_VERSION_MAJOR 0)
@@ -14,7 +14,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Specify build options
 set(CMAKE_BUILD_TYPE Debug)
 
-
 # Set path to externals libraries
 set(EXTERNALS_LIB_PATH ./ExternalsLibs)
 
@@ -22,8 +21,6 @@ set(EXTERNALS_LIB_PATH ./ExternalsLibs)
 set(YAML_LIB_PATH ${EXTERNALS_LIB_PATH}/yaml-cpp)
 set(YAML_INCLUDE_DIR 
 ${YAML_LIB_PATH}/include
-#${YAML_LIB_PATH}/include/yaml-cpp/node
-#${YAML_LIB_PATH}/include/yaml-cpp/contrib
 )
 
 set(YAML_LIB_DIR ${YAML_LIB_PATH}/build)
@@ -46,14 +43,14 @@ sources/HTTPServer.cpp
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Linux/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Linux/lib)
 
-add_executable(HTTPServer
+add_executable(BasicHTTPServer
 ${HEADERS}
 ${SOURCES}
 main.cpp
 )
 
-target_include_directories(HTTPServer PRIVATE ${YAML_INCLUDE_DIR})
+target_include_directories(BasicHTTPServer PRIVATE ${YAML_INCLUDE_DIR})
 
-target_link_libraries(HTTPServer
+target_link_libraries(BasicHTTPServer
 ${YAML_LIBRARIES}
 )
