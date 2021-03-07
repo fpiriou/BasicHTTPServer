@@ -39,15 +39,15 @@ std::string HTTPServer::searchRequest(const std::string& command, const std::str
 	std::string res = version;
 	// Check if the string is find
 	if(myConfigFile[url.c_str()])
-        {
-                std::cout << url  << " is present"  << std::endl;
+    {
+		std::cout << url  << " is present"  << std::endl;
 		return (res + " " + "200 OK");
-        }
-        else
-        {
-	        std::cout << url  << " is not found"  << std::endl;
+	}
+	else
+	{
+		std::cout << url  << " is not found"  << std::endl;
 		return std::string(res + " " + "404 Not Found");
-        }
+	}
 }
 
 
@@ -57,19 +57,19 @@ int HTTPServer::initConnection()
 	
 	// Creation of the socket
 	myBindSockFd = socket(AF_INET, SOCK_STREAM, 0);
-        if (myBindSockFd < 0)
+    if (myBindSockFd < 0)
 	{     
 		std::cout << "ERROR opening socket" << std::endl;
 		return -1;
 	}
 
-        bzero((char *) &servAddr, sizeof(servAddr));
-        servAddr.sin_family = AF_INET;
-        servAddr.sin_addr.s_addr = INADDR_ANY;
-        servAddr.sin_port = htons(myPortNumber);
+    bzero((char *) &servAddr, sizeof(servAddr));
+    servAddr.sin_family = AF_INET;
+    servAddr.sin_addr.s_addr = INADDR_ANY;
+    servAddr.sin_port = htons(myPortNumber);
 
 	// Here we bind a socket to the server address
-        if (bind(myBindSockFd, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
+    if (bind(myBindSockFd, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
 	{
 		std::cout << "ERROR coudn't bind the socket" << std::endl;
 		return -1;
@@ -88,15 +88,15 @@ void getSplittedMessage(std::map<int,std::string>& map, std::string& message)
 	// We get the first two strings who are the command and the url and the http version
 	while ((pos = message.find(delimiter)) != std::string::npos || mapPos < 4) 
 	{
-    		map[mapPos] = message.substr(0, pos);
-    		message.erase(0, pos + delimiter.length());
-    		mapPos++;
+    	map[mapPos] = message.substr(0, pos);
+    	message.erase(0, pos + delimiter.length());
+    	mapPos++;
 	}
 	
 	// Remove the first character who is / from the string
 	map[1].erase(0,1);
 	
-	// Remove the \n in the string and keep the first string
+	// Remove the \n in the line and keep the first string
 	std::string strCRLF = "\n";
 	std::string tmp;
 	size_t nLocCRLF = map[2].find(strCRLF);
@@ -114,23 +114,23 @@ int HTTPServer::waitAndTreatRequest()
 	if(isInitOk)
 	{
 		// This code acccept the client connection 
-        	listen(myBindSockFd,5);
-        	cliLen = sizeof(cliAddr);
-        	myAcceptSockFd = accept(myBindSockFd, (struct sockaddr *) &cliAddr, &cliLen);
-        	if (myAcceptSockFd < 0)
+        listen(myBindSockFd,5);
+        cliLen = sizeof(cliAddr);
+        myAcceptSockFd = accept(myBindSockFd, (struct sockaddr *) &cliAddr, &cliLen);
+        if (myAcceptSockFd < 0)
 		{
-                	std::cout << "ERROR on accept"<< std::endl;
+        	std::cout << "ERROR on accept"<< std::endl;
 			return -1;
 		}
 
-        	bzero(buffer,256);
-        	n = read(myAcceptSockFd,buffer,255);
+        bzero(buffer,256);
+        n = read(myAcceptSockFd,buffer,255);
 
-        	// Get The command and give it to the search command
-        	if (n < 0) 
+        // Get The command and give it to the search command
+        if (n < 0) 
 		{
 			std::cout << "ERROR reading from socket" << std::endl;
-        		return -1;
+        	return -1;
 		}
 
 		// Search in the config file if the command is present
@@ -140,8 +140,8 @@ int HTTPServer::waitAndTreatRequest()
 		std::string response = searchRequest(mySplittedMessage[0], mySplittedMessage[1], mySplittedMessage[2]);
 		std::cout <<"The response sent is : "<< response << std::endl;
 		
-        	// Write the response to the client
-        	n = write(myAcceptSockFd,response.c_str(),response.size());
+        // Write the response to the client
+        n = write(myAcceptSockFd,response.c_str(),response.size());
         
 		//Verify is the message could be sent
 		if (n < 0) 
@@ -160,7 +160,7 @@ void HTTPServer::closeConnection()
 	if(isInitOk)
 	{
 		// Close the sockets
-        	close(myAcceptSockFd);
-        	close(myBindSockFd);
+		close(myAcceptSockFd);
+		close(myBindSockFd);
 	}	
 }
