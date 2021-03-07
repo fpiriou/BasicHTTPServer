@@ -34,11 +34,79 @@ bool HTTPServer::loadConfigFile(const std::string& configFile)
 	return true;
 }
 
+// Search in the file what type of Node we found
+int searchInFile(const char* string, YAML::Node& node)
+{
+	if(node[string].IsDefined())
+	{
+		if(node[string].IsMap())
+		{	
+			return 1;
+		}
+		if(node[string].IsNull())
+		{
+			return 2;
+		}
+		if(node[string].IsSequence())
+		{
+			return 3;
+		}
+		if(node[string].IsScalar())
+		{
+			return 4;
+		}
+		return 0;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
 std::string HTTPServer::searchRequest(const std::string& command, const std::string& url, const std::string& version)
 {
 	std::string res = version;
-	// Check if the string is find
-	if(myConfigFile[url.c_str()])
+	bool isFound = false;
+
+	// Check if url is find
+	for (YAML::iterator it = myConfigFile.begin() ; it!=myConfigFile.end(); it++)
+	{
+		if(it->first.as<std::string>() == url)
+		{
+			isFound = true; 
+		}
+		else
+		{
+			int nodeType = searchInFile(it->first.as<std::string>().c_str(), myConfigFile);
+			switch(nodeType)
+			{
+				case 0: break;
+				// The node is a map
+				case 1:
+					{
+						// Explore the map
+						const std::string& secondLevel = it->first.as<std::string>();
+						for(YAML::iterator it2Level = myConfigFile[secondLevel.c_str()].begin() ; it2Level!=myConfigFile[secondLevel.c_str()].end(); it2Level++)
+						{
+							if(it2Level->first.as<std::string>() == url)
+								isFound = true;
+							else
+							{
+								// Explore the third level 
+							}
+						}
+					}
+					break;
+				case 2: break;
+				case 3: break;
+				// The node is a scalar
+				case 4:	break;
+				default: break;
+			}
+		}
+	}
+
+	if(isFound)
     {
 		std::cout << url  << " is present"  << std::endl;
 		return (res + " " + "200 OK");
@@ -77,7 +145,6 @@ int HTTPServer::initConnection()
 	
 	isInitOk = true;
 	return 0;
-	
 }
 
 void getSplittedMessage(std::map<int,std::string>& map, std::string& message)
@@ -85,16 +152,13 @@ void getSplittedMessage(std::map<int,std::string>& map, std::string& message)
 	std::string delimiter = " ";
 	size_t pos = 0;
 	int mapPos = 0;
-	// We get the first two strings who are the command and the url and the http version
+	// We get the first three strings who are the command ,the url and the http version
 	while ((pos = message.find(delimiter)) != std::string::npos || mapPos < 4) 
 	{
     	map[mapPos] = message.substr(0, pos);
     	message.erase(0, pos + delimiter.length());
     	mapPos++;
 	}
-	
-	// Remove the first character who is / from the string
-	map[1].erase(0,1);
 	
 	// Remove the \n in the line and keep the first string
 	std::string strCRLF = "\n";
@@ -126,7 +190,6 @@ int HTTPServer::waitAndTreatRequest()
         bzero(buffer,256);
         n = read(myAcceptSockFd,buffer,255);
 
-        // Get The command and give it to the search command
         if (n < 0) 
 		{
 			std::cout << "ERROR reading from socket" << std::endl;
@@ -143,7 +206,7 @@ int HTTPServer::waitAndTreatRequest()
         // Write the response to the client
         n = write(myAcceptSockFd,response.c_str(),response.size());
         
-		//Verify is the message could be sent
+		//Verify if the message could be sent
 		if (n < 0) 
 		{
 			std::cout << "ERROR writing to socket" << std::endl;
@@ -152,7 +215,6 @@ int HTTPServer::waitAndTreatRequest()
 
 	}
 	return 0;
-	
 }
 
 void HTTPServer::closeConnection()
