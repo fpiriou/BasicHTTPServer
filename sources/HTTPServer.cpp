@@ -37,35 +37,33 @@ bool HTTPServer::loadConfigFile(const std::string& configFile)
 // Search in the file what type of Node we found
 int searchTypeNode(const char* string, YAML::Node& node)
 {
+	int result{-1};
 	if(node[string].IsDefined())
 	{
 		if(node[string].IsMap())
 		{	
-			return 1;
+			result = 1;
 		}
 		if(node[string].IsNull())
 		{
-			return 2;
+			result = 2;
 		}
 		if(node[string].IsSequence())
 		{
-			return 3;
+			result = 3;
 		}
 		if(node[string].IsScalar())
 		{
-			return 4;
+			result = 4;
 		}
-		return 0;
+		result = 0;
 	}
-	else
-	{
-		return -1;
-	}
+	return result;
 }
 
 std::string HTTPServer::searchRequest(const std::string& command, const std::string& url, const std::string& version)
 {
-	bool isFound = false;
+	bool isFound{false};
 
 	// Check if url is find
 	for (YAML::iterator it = myConfigFile.begin() ; it!=myConfigFile.end(); it++)
@@ -127,10 +125,11 @@ int HTTPServer::initConnection()
 	
 	// Creation of the socket
 	myBindSockFd = socket(AF_INET, SOCK_STREAM, 0);
+	int result{0};
 	if (myBindSockFd < 0)
 	{     
 		std::cout << "ERROR opening socket" << std::endl;
-		return -1;
+		result = -1;
 	}
 
 	bzero((char *) &servAddr, sizeof(servAddr));
@@ -141,7 +140,7 @@ int HTTPServer::initConnection()
 	if (bind(myBindSockFd, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
 	{
 		std::cout << "ERROR coudn't bind the socket" << std::endl;
-		return -1;
+		result = -1;
 	}
 	
 	isInitOk = true;
@@ -150,9 +149,9 @@ int HTTPServer::initConnection()
 
 void getSplittedMessage(std::map<int,std::string>& map, std::string& message)
 {
-	std::string delimiter = " ";
-	size_t pos = 0;
-	int mapPos = 0;
+	std::string delimiter{" "};
+	size_t pos{0};
+	int mapPos{0};
 	// We get the first three strings who are the command ,the url and the http version
 	while ((pos = message.find(delimiter)) != std::string::npos || mapPos < 4) 
 	{
@@ -162,9 +161,9 @@ void getSplittedMessage(std::map<int,std::string>& map, std::string& message)
 	}
 
 	// Remove the \n in the line and keep the first string
-	std::string strCRLF = "\n";
+	std::string strCRLF{"\n"};
 	std::string tmp;
-	size_t nLocCRLF = map[2].find(strCRLF);
+	size_t nLocCRLF{map[2].find(strCRLF)};
 	tmp = map[2].substr(0,nLocCRLF-1);
 	map[2] = tmp;
 }
